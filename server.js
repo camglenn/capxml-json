@@ -19,47 +19,26 @@ let lastUpdated = null;
 // Fetch and cache the latest valid alert
 async function fetchAndCacheXML() {
     try {
-        console.log("🔄 Fetching latest XML feed...");
-
         const response = await axios.get(XML_FEED_URL, { responseType: "text" });
-
-        if (!response.data || response.data.trim() === "") {
-            console.log("⚠️ Empty response from feed — keeping last valid alert.");
-            return;
-        }
-
         const parsed = await parser.parseStringPromise(response.data);
 
-        if (!parsed || !parsed.alerts) {
-            console.log("⚠️ Parsed XML has no 'alerts' — keeping last valid alert.");
-            return;
-        }
-
-        const alerts = parsed.alerts.alert;
+        const alerts = parsed?.alerts?.alert;
 
         if (alerts) {
-            // Normalize: If multiple alerts, take the first (newest)
+            // Normalize: if multiple alerts, take the first (newest)
             const newestAlert = Array.isArray(alerts) ? alerts[0] : alerts;
 
-            // Only update if a new valid alert is found
-            if (newestAlert) {
-                lastValidAlert = newestAlert;
-                lastUpdated = new Date().toISOString();
-                console.log("✅ New alert cached at", lastUpdated);
-            } else {
-                console.log("⚠️ Alerts structure found, but no valid alerts inside.");
-            }
+            // Only update if a new alert exists
+            lastValidAlert = newestAlert;
+            lastUpdated = new Date().toISOString();
+
+            console.log("✅ New alert cached at", lastUpdated);
         } else {
-            console.log("⚠️ No new alerts found — keeping last valid alert.");
+            console.log("⚠️ No new alerts in feed — keeping last valid alert.");
         }
     } catch (err) {
-        if (err.response) {
-            console.error(`❌ HTTP ${err.response.status}:`, err.response.data);
-        } else {
-            console.error("❌ Fetch error:", err.message);
-        }
+        console.error("❌ Error during fetch:", err.message);
     }
-    
 }
 
 // Initial fetch
