@@ -5,39 +5,61 @@ const xml2js = require("xml2js");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Replace with your XML feed URL
-const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43";
+const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent";
 
-// Create an instance of the XML parser with improved options
 const parser = new xml2js.Parser({
-    explicitArray: false, // avoid wrapping everything in arrays
-    ignoreAttrs: false,   // keep attributes like id, type, etc.
-    tagNameProcessors: [xml2js.processors.stripPrefix] // strip namespace prefixes like ns1:
+    explicitArray: false,
+    ignoreAttrs: false,
+    tagNameProcessors: [xml2js.processors.stripPrefix]
 });
 
-// Function to fetch and convert XML to JSON
-async function fetchAndConvertXML() {
+let lastValidAlert = null;
+let lastUpdated = null;
+
+// Fetch and cache the latest valid alert
+async function fetchAndCacheXML() {
     try {
-        console.log("Fetching XML from:", XML_FEED_URL);
-
         const response = await axios.get(XML_FEED_URL, { responseType: "text" });
+        const parsed = await parser.parseStringPromise(response.data);
 
-        const jsonData = await parser.parseStringPromise(response.data);
-        return jsonData;
+        const alerts = parsed?.alerts?.alert;
 
-    } catch (error) {
-        console.error("Error fetching or parsing XML:", error.message);
-        return { error: "Failed to fetch or parse XML feed" };
+        if (alerts) {
+            // Normalize: if multiple alerts, take the first (newest)
+            const newestAlert = Array.isArray(alerts) ? alerts[0] : alerts;
+
+            lastValidAlert = newestAlert;
+            lastUpdated = new Date().toISOString();
+
+            console.log("✅ New alert cached at", lastUpdated);
+        } else {
+            console.log("⚠️ No alerts in feed at", new Date().toISOString());
+        }
+    } catch (err) {
+        console.error("❌ Error during fetch:", err.message);
     }
 }
 
-// API Endpoint to serve JSON
-app.get("/json-feed", async (req, res) => {
-    const jsonFeed = await fetchAndConvertXML();
-    res.json(jsonFeed);
+// Initial fetch
+fetchAndCacheXML();
+
+// Repeat every 45 seconds
+setInterval(fetchAndCacheXML, 45 * 1000);
+
+// API endpoint
+app.get("/json-feed", (req, res) => {
+    if (lastValidAlert) {
+        res.json({
+            lastUpdated,
+            alert: lastValidAlert
+        });
+    } else {
+        res.json({
+            message: "Feed not available yet. Try again shortly."
+        });
+    }
 });
 
-// Start Server
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
