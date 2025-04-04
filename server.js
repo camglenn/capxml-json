@@ -28,12 +28,13 @@ async function fetchAndCacheXML() {
             // Normalize: if multiple alerts, take the first (newest)
             const newestAlert = Array.isArray(alerts) ? alerts[0] : alerts;
 
+            // Only update if a new alert exists
             lastValidAlert = newestAlert;
             lastUpdated = new Date().toISOString();
 
             console.log("✅ New alert cached at", lastUpdated);
         } else {
-            console.log("⚠️ No alerts in feed at", new Date().toISOString());
+            console.log("⚠️ No new alerts in feed — keeping last valid alert.");
         }
     } catch (err) {
         console.error("❌ Error during fetch:", err.message);
@@ -55,7 +56,7 @@ app.get("/json-feed", (req, res) => {
         });
     } else {
         res.json({
-            message: "Feed not available yet. Try again shortly."
+            message: "No alerts have been received yet."
         });
     }
 });
