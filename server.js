@@ -16,7 +16,6 @@ const parser = new xml2js.Parser({
 let lastValidAlert = null;
 let lastUpdated = null;
 
-// Fetch and cache only one valid alert (newest after discarding oldest if needed)
 async function fetchAndCacheXML() {
     try {
         console.log("🔄 Fetching latest XML feed...");
@@ -24,41 +23,39 @@ async function fetchAndCacheXML() {
         const response = await axios.get(XML_FEED_URL, { responseType: "text" });
 
         if (!response.data || response.data.trim() === "") {
-            console.log("⚠️ Empty response from feed — keeping last valid alert.");
+            console.log("⚠️ Empty feed — retaining previous alert.");
             return;
         }
 
         const parsed = await parser.parseStringPromise(response.data);
 
         if (!parsed || !parsed.alerts || !parsed.alerts.alert) {
-            console.log("⚠️ Parsed XML has no valid 'alerts' — keeping last valid alert.");
+            console.log("⚠️ Invalid XML structure — retaining previous alert.");
             return;
         }
 
         let alerts = parsed.alerts.alert;
 
-        // Normalize alerts to array
         if (!Array.isArray(alerts)) {
             alerts = [alerts];
         }
 
-        // Discard oldest if more than 2
+        // Keep only the two most recent (discard oldest if more than 2)
         if (alerts.length > 2) {
-            alerts = alerts.slice(0, 2); // Keep the two newest
+            alerts = alerts.slice(0, 2); // assumes feed is in reverse-chron order
         }
 
-        // Take the newest from the two (first in the list)
         const newestAlert = alerts[0];
 
         if (newestAlert) {
             lastValidAlert = newestAlert;
             lastUpdated = new Date().toISOString();
-            console.log("✅ Cached 1 newest alert at", lastUpdated);
+            console.log("✅ New alert cached at", lastUpdated);
         } else {
-            console.log("⚠️ No valid alerts to cache.");
+            console.log("⚠️ No usable alert in feed — retaining previous alert.");
         }
     } catch (err) {
-        console.error("❌ Error during fetch:", err.message);
+        console.error("❌ Error fetching XML feed:", err.message);
     }
 }
 
@@ -68,7 +65,7 @@ fetchAndCacheXML();
 // Repeat every 45 seconds
 setInterval(fetchAndCacheXML, 45 * 1000);
 
-// API endpoint that always returns exactly one alert
+// Serve the most recent alert
 app.get("/json-feed", (req, res) => {
     if (lastValidAlert) {
         res.json({
@@ -76,8 +73,8 @@ app.get("/json-feed", (req, res) => {
             alert: lastValidAlert
         });
     } else {
-        res.json({
-            message: "No alerts have been received yet."
+        res.status(503).json({
+            message: "No alerts available yet. Please try again later."
         });
     }
 });
