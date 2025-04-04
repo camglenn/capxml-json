@@ -5,7 +5,7 @@ const xml2js = require("xml2js");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/public/recent/2023-08-21T11:40:43Z";
+const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
 const parser = new xml2js.Parser({
     explicitArray: false,
