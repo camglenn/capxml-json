@@ -5,7 +5,7 @@ const xml2js = require("xml2js");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent";
+const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
 const parser = new xml2js.Parser({
     explicitArray: false,
@@ -53,8 +53,13 @@ async function fetchAndCacheXML() {
             console.log("⚠️ No new alerts found — keeping last valid alert.");
         }
     } catch (err) {
-        console.error("❌ Error during fetch:", err.message);
+        if (err.response) {
+            console.error(`❌ HTTP ${err.response.status}:`, err.response.data);
+        } else {
+            console.error("❌ Fetch error:", err.message);
+        }
     }
+    
 }
 
 // Initial fetch
