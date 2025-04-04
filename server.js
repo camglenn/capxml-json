@@ -5,62 +5,39 @@ const xml2js = require("xml2js");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
+// Replace with your XML feed URL
+const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43";
 
+// Create an instance of the XML parser with improved options
 const parser = new xml2js.Parser({
-    explicitArray: false,
-    ignoreAttrs: false,
-    tagNameProcessors: [xml2js.processors.stripPrefix]
+    explicitArray: false, // avoid wrapping everything in arrays
+    ignoreAttrs: false,   // keep attributes like id, type, etc.
+    tagNameProcessors: [xml2js.processors.stripPrefix] // strip namespace prefixes like ns1:
 });
 
-let lastValidAlert = null;
-let lastUpdated = null;
-
-// Fetch and cache the latest valid alert
-async function fetchAndCacheXML() {
+// Function to fetch and convert XML to JSON
+async function fetchAndConvertXML() {
     try {
+        console.log("Fetching XML from:", XML_FEED_URL);
+
         const response = await axios.get(XML_FEED_URL, { responseType: "text" });
-        const parsed = await parser.parseStringPromise(response.data);
 
-        const alerts = parsed?.alerts?.alert;
+        const jsonData = await parser.parseStringPromise(response.data);
+        return jsonData;
 
-        if (alerts) {
-            // Normalize: if multiple alerts, take the first (newest)
-            const newestAlert = Array.isArray(alerts) ? alerts[0] : alerts;
-
-            // Only update if a new alert exists
-            lastValidAlert = newestAlert;
-            lastUpdated = new Date().toISOString();
-
-            console.log("✅ New alert cached at", lastUpdated);
-        } else {
-            console.log("⚠️ No new alerts in feed — keeping last valid alert.");
-        }
-    } catch (err) {
-        console.error("❌ Error during fetch:", err.message);
+    } catch (error) {
+        console.error("Error fetching or parsing XML:", error.message);
+        return { error: "Failed to fetch or parse XML feed" };
     }
 }
 
-// Initial fetch
-fetchAndCacheXML();
-
-// Repeat every 45 seconds
-setInterval(fetchAndCacheXML, 45 * 1000);
-
-// API endpoint
-app.get("/json-feed", (req, res) => {
-    if (lastValidAlert) {
-        res.json({
-            lastUpdated,
-            alert: lastValidAlert
-        });
-    } else {
-        res.json({
-            message: "No alerts have been received yet."
-        });
-    }
+// API Endpoint to serve JSON
+app.get("/json-feed", async (req, res) => {
+    const jsonFeed = await fetchAndConvertXML();
+    res.json(jsonFeed);
 });
 
+// Start Server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
 });
