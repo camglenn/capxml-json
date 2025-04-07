@@ -132,6 +132,8 @@ app.get("/debug", async (req, res) => {
     });
 });
 
+console.log("🛠️ /debug route is live");
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
