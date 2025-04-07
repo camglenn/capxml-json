@@ -10,8 +10,8 @@ const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/r
 
 // Redis via Upstash
 const redis = new Redis({
-  url: process.env.http://generous-glowworm-62892.upstash.io,
-  token: process.env.AfWsAAIjcDEwYjczM2E1MDI5NDY0ZWY4OGQyYTdlNDgyMWQ5ZDMxMnAxMA,
+  url: process.env.REDIS_REST_URL || "http://generous-glowworm-62892.upstash.io",
+  token: process.env.REDIS_REST_TOKEN || AfWsAAIjcDEwYjczM2E1MDI5NDY0ZWY4OGQyYTdlNDgyMWQ5ZDMxMnAxMA,
 });
 
 const parser = new xml2js.Parser({
