@@ -138,3 +138,12 @@ console.log("🛠️ /debug route is live");
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
+const fs = require('fs');
+const modulePath = `./node_modules/express`;
+
+if (fs.existsSync(modulePath)) {
+  console.log('Express is installed');
+} else {
+  console.error('Express is missing');
+}
