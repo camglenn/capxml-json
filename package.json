@@ -813,6 +813,7 @@
     }
   },
   "dependencies": {
+    "@upstash/redis": "^1.34.7",
     "axios": "^1.8.4",
     "express": "^5.1.0",
     "redis": "^4.7.0",
