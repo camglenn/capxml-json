@@ -1,11 +1,10 @@
 const express = require("express");
 const axios = require("axios");
 const xml2js = require("xml2js");
-const Redis = require("ioredis");
+const redis = require("redis");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const redis = new Redis(process.env.REDIS_URL);
 
 const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
@@ -15,27 +14,41 @@ const parser = new xml2js.Parser({
     tagNameProcessors: [xml2js.processors.stripPrefix]
 });
 
+// 🔌 Redis client setup
+const redisClient = redis.createClient({
+    url: process.env.REDIS_URL,
+    socket: {
+        reconnectStrategy: () => 1000, // retry every 1s if disconnected
+    }
+});
+
+redisClient.on("error", (err) => console.error("❌ Redis error:", err));
+redisClient.connect().then(() => {
+    console.log("🔗 Connected to Redis.");
+});
+
+// In-memory cache fallback
 let lastValidAlert = null;
 let lastUpdated = null;
 
-// Load cached alert from Redis on startup
-async function loadCacheFromRedis() {
+// Restore from Redis on startup
+async function loadCachedAlert() {
     try {
-        const cached = await redis.get("lastValidAlert");
-        if (cached) {
-            const { alert, lastUpdated: updated } = JSON.parse(cached);
+        const redisData = await redisClient.get("lastValidAlert");
+        if (redisData) {
+            const { alert, lastUpdated: cachedTime } = JSON.parse(redisData);
             lastValidAlert = alert;
-            lastUpdated = updated;
-            console.log("📦 Loaded alert from Redis:", lastUpdated);
+            lastUpdated = cachedTime;
+            console.log("📦 Loaded alert from Redis:", alert?.identifier || "No ID");
         } else {
-            console.log("📦 No cached alert found in Redis.");
+            console.log("📭 Redis empty at startup.");
         }
     } catch (err) {
         console.error("❌ Error loading cache from Redis:", err.message);
     }
 }
 
-// Fetch and cache the latest valid alert from the XML feed
+// Fetch and cache alerts
 async function fetchAndCacheXML() {
     try {
         console.log("🔄 Fetching latest XML feed...");
@@ -49,8 +62,8 @@ async function fetchAndCacheXML() {
 
         const parsed = await parser.parseStringPromise(response.data);
 
-        if (!parsed || !parsed.alerts || !parsed.alerts.alert) {
-            console.log("⚠️ Invalid XML structure — retaining previous alert.");
+        if (!parsed?.alerts?.alert) {
+            console.log("⚠️ No valid alerts in feed — retaining previous alert.");
             return;
         }
 
@@ -60,9 +73,8 @@ async function fetchAndCacheXML() {
             alerts = [alerts];
         }
 
-        // Keep only the two most recent (discard oldest if more than 2)
         if (alerts.length > 2) {
-            alerts = alerts.slice(0, 2); // assumes feed is in reverse-chron order
+            alerts = alerts.slice(0, 2);
         }
 
         const newestAlert = alerts[0];
@@ -71,31 +83,31 @@ async function fetchAndCacheXML() {
             lastValidAlert = newestAlert;
             lastUpdated = new Date().toISOString();
 
+            console.log("✅ New alert cached:", newestAlert.identifier);
+
             // Save to Redis
-            await redis.set(
+            await redisClient.set(
                 "lastValidAlert",
                 JSON.stringify({ alert: lastValidAlert, lastUpdated }),
-                "EX",
-                60 * 60 * 24 // optional: expire after 24 hours
+                { EX: 60 * 60 * 24 } // expire in 24 hours
             );
 
-            console.log("✅ New alert cached at", lastUpdated);
             console.log("💾 Alert saved to Redis.");
         } else {
-            console.log("⚠️ No usable alert in feed — retaining previous alert.");
+            console.log("⚠️ Feed structure OK but alert empty — retaining previous.");
         }
     } catch (err) {
         console.error("❌ Error fetching XML feed:", err.message);
     }
 }
 
-// Load cache from Redis, then start fetching
-loadCacheFromRedis().then(() => {
-    fetchAndCacheXML(); // First fetch
-    setInterval(fetchAndCacheXML, 45 * 1000); // Repeat every 45 sec
-});
+// Load initial cache from Redis
+loadCachedAlert();
 
-// Serve the most recent alert
+// Periodic fetch
+setInterval(fetchAndCacheXML, 45 * 1000);
+
+// API Endpoint
 app.get("/json-feed", (req, res) => {
     if (lastValidAlert) {
         res.json({
@@ -109,6 +121,18 @@ app.get("/json-feed", (req, res) => {
     }
 });
 
+// 🔍 Debug Endpoint
+app.get("/debug", async (req, res) => {
+    const redisValue = await redisClient.get("lastValidAlert");
+
+    res.json({
+        inMemory: lastValidAlert ? "✅ Exists" : "❌ Null",
+        redis: redisValue ? "✅ Found" : "❌ Not found",
+        redisData: redisValue ? JSON.parse(redisValue) : null
+    });
+});
+
+// Start the server
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
