@@ -4,7 +4,7 @@ const xml2js = require("xml2js");
 const { Redis } = require("@upstash/redis");
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 10000;
 
 const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
@@ -138,5 +138,5 @@ app.get("/debug", async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://0.0.0.0:10000`);
 });
