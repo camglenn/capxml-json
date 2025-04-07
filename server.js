@@ -14,24 +14,20 @@ const parser = new xml2js.Parser({
     tagNameProcessors: [xml2js.processors.stripPrefix]
 });
 
-// 🔌 Redis client setup
+// Redis client setup
 const redisClient = redis.createClient({
     url: process.env.REDIS_URL,
     socket: {
-        reconnectStrategy: () => 1000, // retry every 1s if disconnected
+        reconnectStrategy: () => 1000, // Retry every 1s
     }
 });
 
 redisClient.on("error", (err) => console.error("❌ Redis error:", err));
-redisClient.connect().then(() => {
-    console.log("🔗 Connected to Redis.");
-});
 
-// In-memory cache fallback
 let lastValidAlert = null;
 let lastUpdated = null;
 
-// Restore from Redis on startup
+// Load from Redis on startup
 async function loadCachedAlert() {
     try {
         const redisData = await redisClient.get("lastValidAlert");
@@ -41,29 +37,29 @@ async function loadCachedAlert() {
             lastUpdated = cachedTime;
             console.log("📦 Loaded alert from Redis:", alert?.identifier || "No ID");
         } else {
-            console.log("📭 Redis empty at startup.");
+            console.log("📭 Redis is empty at startup.");
         }
     } catch (err) {
-        console.error("❌ Error loading cache from Redis:", err.message);
+        console.error("❌ Error loading Redis cache:", err.message);
     }
 }
 
-// Fetch and cache alerts
+// Fetch and cache new alerts
 async function fetchAndCacheXML() {
     try {
-        console.log("🔄 Fetching latest XML feed...");
+        console.log("🔄 Fetching XML feed...");
 
         const response = await axios.get(XML_FEED_URL, { responseType: "text" });
 
         if (!response.data || response.data.trim() === "") {
-            console.log("⚠️ Empty feed — retaining previous alert.");
+            console.log("⚠️ Empty feed — keeping previous alert.");
             return;
         }
 
         const parsed = await parser.parseStringPromise(response.data);
 
         if (!parsed?.alerts?.alert) {
-            console.log("⚠️ No valid alerts in feed — retaining previous alert.");
+            console.log("⚠️ No valid alerts in parsed XML.");
             return;
         }
 
@@ -83,31 +79,24 @@ async function fetchAndCacheXML() {
             lastValidAlert = newestAlert;
             lastUpdated = new Date().toISOString();
 
-            console.log("✅ New alert cached:", newestAlert.identifier);
+            console.log("✅ Caching new alert:", newestAlert.identifier);
 
-            // Save to Redis
             await redisClient.set(
                 "lastValidAlert",
                 JSON.stringify({ alert: lastValidAlert, lastUpdated }),
-                { EX: 60 * 60 * 24 } // expire in 24 hours
+                { EX: 60 * 60 * 24 } // Expires after 24 hours
             );
 
             console.log("💾 Alert saved to Redis.");
         } else {
-            console.log("⚠️ Feed structure OK but alert empty — retaining previous.");
+            console.log("⚠️ Feed was valid but no usable alerts.");
         }
     } catch (err) {
-        console.error("❌ Error fetching XML feed:", err.message);
+        console.error("❌ Error during XML fetch:", err.message);
     }
 }
 
-// Load initial cache from Redis
-loadCachedAlert();
-
-// Periodic fetch
-setInterval(fetchAndCacheXML, 45 * 1000);
-
-// API Endpoint
+// Serve one alert
 app.get("/json-feed", (req, res) => {
     if (lastValidAlert) {
         res.json({
@@ -121,7 +110,12 @@ app.get("/json-feed", (req, res) => {
     }
 });
 
-// 🔍 Debug Endpoint
+// Ping endpoint to check server is up
+app.get("/ping", (req, res) => {
+    res.send("pong");
+});
+
+// Debug endpoint
 app.get("/debug", async (req, res) => {
     const redisValue = await redisClient.get("lastValidAlert");
 
@@ -131,19 +125,21 @@ app.get("/debug", async (req, res) => {
         redisData: redisValue ? JSON.parse(redisValue) : null
     });
 });
+console.log("🛠️ /debug and /ping routes are ready");
 
-console.log("🛠️ /debug route is live");
+// Start the app after Redis connects
+(async () => {
+    try {
+        await redisClient.connect();
+        console.log("🔗 Connected to Redis.");
+        await loadCachedAlert(); // Load any saved alert
+        await fetchAndCacheXML(); // Get a fresh one right away
+        setInterval(fetchAndCacheXML, 45 * 1000); // Re-fetch every 45 seconds
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
-
-const fs = require('fs');
-const modulePath = `./node_modules/express`;
-
-if (fs.existsSync(modulePath)) {
-  console.log('Express is installed');
-} else {
-  console.error('Express is missing');
-}
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running at http://localhost:${PORT}`);
+        });
+    } catch (err) {
+        console.error("❌ Failed to start app:", err);
+    }
+})();
