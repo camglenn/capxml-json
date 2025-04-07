@@ -8,9 +8,11 @@ const PORT = process.env.PORT || 10000;
 
 const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
+const Redis = require("@upstash/redis"); // or 'upstash-redis' if you're using that package
+
 // Redis via Upstash
 const redis = new Redis({
-  url: process.env.generous-glowworm-62892.upstash.io,
+  url: process.env.http://generous-glowworm-62892.upstash.io,
   token: process.env.AfWsAAIjcDEwYjczM2E1MDI5NDY0ZWY4OGQyYTdlNDgyMWQ5ZDMxMnAxMA,
 });
 
