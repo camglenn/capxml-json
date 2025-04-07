@@ -1,9 +1,11 @@
 const express = require("express");
 const axios = require("axios");
 const xml2js = require("xml2js");
+const Redis = require("ioredis");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const redis = new Redis(process.env.REDIS_URL);
 
 const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
@@ -16,6 +18,24 @@ const parser = new xml2js.Parser({
 let lastValidAlert = null;
 let lastUpdated = null;
 
+// Load cached alert from Redis on startup
+async function loadCacheFromRedis() {
+    try {
+        const cached = await redis.get("lastValidAlert");
+        if (cached) {
+            const { alert, lastUpdated: updated } = JSON.parse(cached);
+            lastValidAlert = alert;
+            lastUpdated = updated;
+            console.log("📦 Loaded alert from Redis:", lastUpdated);
+        } else {
+            console.log("📦 No cached alert found in Redis.");
+        }
+    } catch (err) {
+        console.error("❌ Error loading cache from Redis:", err.message);
+    }
+}
+
+// Fetch and cache the latest valid alert from the XML feed
 async function fetchAndCacheXML() {
     try {
         console.log("🔄 Fetching latest XML feed...");
@@ -50,12 +70,17 @@ async function fetchAndCacheXML() {
         if (newestAlert) {
             lastValidAlert = newestAlert;
             lastUpdated = new Date().toISOString();
+
+            // Save to Redis
+            await redis.set(
+                "lastValidAlert",
+                JSON.stringify({ alert: lastValidAlert, lastUpdated }),
+                "EX",
+                60 * 60 * 24 // optional: expire after 24 hours
+            );
+
             console.log("✅ New alert cached at", lastUpdated);
-            console.log("🧠 Cached alert summary:", {
-                identifier: newestAlert.identifier,
-                sent: newestAlert.sent,
-            });
-            
+            console.log("💾 Alert saved to Redis.");
         } else {
             console.log("⚠️ No usable alert in feed — retaining previous alert.");
         }
@@ -64,11 +89,11 @@ async function fetchAndCacheXML() {
     }
 }
 
-// Initial fetch
-fetchAndCacheXML();
-
-// Repeat every 45 seconds
-setInterval(fetchAndCacheXML, 45 * 1000);
+// Load cache from Redis, then start fetching
+loadCacheFromRedis().then(() => {
+    fetchAndCacheXML(); // First fetch
+    setInterval(fetchAndCacheXML, 45 * 1000); // Repeat every 45 sec
+});
 
 // Serve the most recent alert
 app.get("/json-feed", (req, res) => {
