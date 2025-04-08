@@ -46,12 +46,11 @@ async function fetchAndCacheXML() {
       alerts = [alerts];
     }
 
-    // Feed is oldest → newest, so slice from the end to get latest items
     if (alerts.length > 2) {
-      alerts = alerts.slice(-2); // keep the two newest
+      alerts = alerts.slice(0, 2); // assume reverse-chronological order
     }
 
-    const newestAlert = alerts[alerts.length - 1]; // ← use last item in array
+    const newestAlert = alerts[0];
 
     if (newestAlert) {
       lastValidAlert = newestAlert;
@@ -139,5 +138,5 @@ app.get("/debug", async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
+  console.log(🚀 Server running at http://0.0.0.0:10000);
 });
