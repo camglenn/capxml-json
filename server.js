@@ -138,5 +138,5 @@ app.get("/debug", async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(🚀 Server running at http://0.0.0.0:10000);
+  console.log(`🚀 Server running at http://0.0.0.0:10000`);
 });
