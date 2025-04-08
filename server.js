@@ -25,7 +25,7 @@ let lastUpdated = null;
 
 // Hardcoded alert object
 const hardcodedAlert = {
-  identifier: "All-Channels--202538164046",
+  identifier: "All-Channels--8675309",
   sender: "IPAWS-PMO-TESTER-SW",
   sent: "2025-04-08T16:40:46-04:00",
   status: "Actual",
@@ -48,11 +48,11 @@ const hardcodedAlert = {
     effective: "2025-04-08T16:40:46-04:00",
     expires: "2025-04-08T16:45:46-04:00",
     senderName: "120006,IPAWS-Test-COG,PMO Tester",
-    headline: "Test Message only Disregard please.",
+    headline: "This is the hardcoded headline on 5:02 pm ET on April 8, 2025",
     description:
-      'This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
+      'This is the hard-coded description. This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
     instruction:
-      "All residents within a 10-mile radius MUST EVACUATE IMMEDIATELY. Call 555-5556 to request transportation. Shelters are being established outside of the affected areas. Do not pick up children from schools in the affected areas. Schoolchildren will be transported to shelters and parents will be notified via media where to meet their children. Stay tuned for additional emergency information. This is a Simulation. This is Only a Test.",
+      "This is the hard-coded instruction. All residents within a 10-mile radius MUST EVACUATE IMMEDIATELY. Call 555-5556 to request transportation. Shelters are being established outside of the affected areas. Do not pick up children from schools in the affected areas. Schoolchildren will be transported to shelters and parents will be notified via media where to meet their children. Stay tuned for additional emergency information. This is a Simulation. This is Only a Test.",
     parameter: [
       { valueName: "EAS-ORG", value: "CIV" },
       { valueName: "timezone", value: "EST" },
