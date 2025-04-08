@@ -23,6 +23,61 @@ const parser = new xml2js.Parser({
 let lastValidAlert = null;
 let lastUpdated = null;
 
+// Hardcoded alert object
+const hardcodedAlert = {
+  identifier: "All-Channels--202538164046",
+  sender: "IPAWS-PMO-TESTER-SW",
+  sent: "2025-04-08T16:40:46-04:00",
+  status: "Actual",
+  msgType: "Alert",
+  source: "IPAWS-PMO-TESTING",
+  scope: "Public",
+  code: "IPAWSv1.0",
+  info: {
+    language: "en-US",
+    category: "CBRNE",
+    event: "Evacuation Immediate",
+    responseType: "Evacuate",
+    urgency: "Immediate",
+    severity: "Severe",
+    certainty: "Observed",
+    eventCode: {
+      valueName: "SAME",
+      value: "EVI",
+    },
+    effective: "2025-04-08T16:40:46-04:00",
+    expires: "2025-04-08T16:45:46-04:00",
+    senderName: "120006,IPAWS-Test-COG,PMO Tester",
+    headline: "Test Message only Disregard please.",
+    description:
+      'This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
+    instruction:
+      "All residents within a 10-mile radius MUST EVACUATE IMMEDIATELY. Call 555-5556 to request transportation. Shelters are being established outside of the affected areas. Do not pick up children from schools in the affected areas. Schoolchildren will be transported to shelters and parents will be notified via media where to meet their children. Stay tuned for additional emergency information. This is a Simulation. This is Only a Test.",
+    parameter: [
+      { valueName: "EAS-ORG", value: "CIV" },
+      { valueName: "timezone", value: "EST" },
+      { valueName: "WEAHandling", value: "Imminent Threat" },
+      {
+        valueName: "CMAMtext",
+        value: "This is where the 90 character English text to WEA goes. http://www.fema.gov",
+      },
+      {
+        valueName: "CMAMlongtext",
+        value:
+          "This is where the 360 character description in English goes. Evacuation Order for Hwy east of the Park",
+      },
+    ],
+    area: {
+      areaDesc: "Alexandria",
+      polygon: "38.8512,-77.1912 38.8107,-77.1908 38.8001,-77.0713 38.8503,-77.0701 38.8512,-77.1912",
+      geocode: {
+        valueName: "SAME",
+        value: "051059",
+      },
+    },
+  },
+};
+
 async function fetchAndCacheXML() {
   try {
     console.log("🔄 Fetching latest XML feed...");
@@ -46,22 +101,23 @@ async function fetchAndCacheXML() {
       alerts = [alerts];
     }
 
-    if (alerts.length > 2) {
-      alerts = alerts.slice(0, 2); // assume reverse-chronological order
-    }
+    // Reverse the order to newest-first
+    alerts = alerts.reverse();
 
-    const newestAlert = alerts[0];
+    // Limit to 1 from feed + 1 hardcoded
+    const selectedAlerts = [alerts[0], hardcodedAlert];
+
+    const newestAlert = selectedAlerts[0];
 
     if (newestAlert) {
-      lastValidAlert = newestAlert;
+      lastValidAlert = selectedAlerts;
       lastUpdated = new Date().toISOString();
 
-      // Cache in Redis
       await redis.set("lastValidAlert", JSON.stringify(lastValidAlert));
       await redis.set("lastUpdated", lastUpdated);
 
-      console.log("✅ Cached new alert at", lastUpdated);
-      console.log("🧠 Alert ID:", newestAlert.identifier);
+      console.log("✅ Cached alerts at", lastUpdated);
+      console.log("🧠 Newest Alert ID:", newestAlert.identifier);
     } else {
       console.log("⚠️ No usable alert — retaining previous.");
     }
@@ -70,7 +126,6 @@ async function fetchAndCacheXML() {
   }
 }
 
-// Attempt to restore from Redis on startup
 async function restoreFromRedis() {
   try {
     const alertJSON = await redis.get("lastValidAlert");
@@ -79,29 +134,26 @@ async function restoreFromRedis() {
     if (alertJSON && updated) {
       lastValidAlert = JSON.parse(alertJSON);
       lastUpdated = updated;
-      console.log("♻️ Restored alert from Redis cache.");
+      console.log("♻️ Restored alerts from Redis cache.");
     } else {
-      console.log("ℹ️ No cached alert found in Redis.");
+      console.log("ℹ️ No cached alerts found in Redis.");
     }
   } catch (err) {
     console.error("❌ Redis restore error:", err.message);
   }
 }
 
-// Initial restore and fetch
 restoreFromRedis().then(fetchAndCacheXML);
 setInterval(fetchAndCacheXML, 45 * 1000);
 
-// JSON feed route
 app.get("/json-feed", async (req, res) => {
   if (lastValidAlert) {
     return res.json({
       lastUpdated,
-      alert: lastValidAlert,
+      alerts: lastValidAlert,
     });
   }
 
-  // fallback to Redis
   try {
     const alertJSON = await redis.get("lastValidAlert");
     const updated = await redis.get("lastUpdated");
@@ -109,7 +161,7 @@ app.get("/json-feed", async (req, res) => {
     if (alertJSON) {
       return res.json({
         lastUpdated: updated,
-        alert: JSON.parse(alertJSON),
+        alerts: JSON.parse(alertJSON),
       });
     }
   } catch (err) {
@@ -119,7 +171,6 @@ app.get("/json-feed", async (req, res) => {
   return res.status(503).json({ message: "No alerts available yet." });
 });
 
-// Debug route
 app.get("/debug", async (req, res) => {
   const redisAlert = await redis.get("lastValidAlert");
   const redisTime = await redis.get("lastUpdated");
@@ -129,14 +180,13 @@ app.get("/debug", async (req, res) => {
     redis: redisAlert ? "✅ Found" : "❌ Missing",
     redisData: redisAlert
       ? {
-          alert: JSON.parse(redisAlert),
+          alerts: JSON.parse(redisAlert),
           lastUpdated: redisTime,
         }
       : null,
   });
 });
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://0.0.0.0:10000`);
+  console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
 });
