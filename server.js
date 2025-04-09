@@ -48,7 +48,7 @@ const hardcodedAlert = {
     effective: "2025-04-08T16:40:46-04:00",
     expires: "2025-04-08T16:45:46-04:00",
     senderName: "120006,IPAWS-Test-COG,PMO Tester",
-    headline: "This is the hardcoded headline on 5:02 pm ET on April 8, 2025",
+    headline: "This is the hardcoded headline",
     description:
       'This is the hard-coded description. This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
     instruction:
@@ -67,6 +67,23 @@ const hardcodedAlert = {
           "This is where the 360 character description in English goes. Evacuation Order for Hwy east of the Park",
       },
     ],
+    resource: [
+        {   
+            resourceDesc: "EAS Broadcast Content", 
+            mimeType: "image/png", 
+            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_qr_code.png",
+        },
+        {   
+            resourceDesc: "Iowa Snow Totals", 
+            mimeType: "image/png", 
+            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_snow_totals.png",
+        },
+        {   
+            resourceDesc: "Iowa Forecast Snowfall", 
+            mimeType: "image/png", 
+            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_forecast_snowfall.png",
+        },
+      ],
     area: {
       areaDesc: "Alexandria",
       polygon: "38.8512,-77.1912 38.8107,-77.1908 38.8001,-77.0713 38.8503,-77.0701 38.8512,-77.1912",
