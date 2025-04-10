@@ -161,7 +161,7 @@ async function restoreFromRedis() {
 }
 
 restoreFromRedis().then(fetchAndCacheXML);
-setInterval(fetchAndCacheXML, 15 * 1000);
+setInterval(fetchAndCacheXML, 10 * 1000);
 
 app.get("/json-feed", async (req, res) => {
   if (lastValidAlert) {
