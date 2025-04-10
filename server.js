@@ -48,7 +48,7 @@ const hardcodedAlert = {
     effective: "2025-04-08T16:40:46-04:00",
     expires: "2025-04-08T16:45:46-04:00",
     senderName: "120006,IPAWS-Test-COG,PMO Tester",
-    headline: "This is the hardcoded headline",
+    headline: "This is the hardcoded headline updated",
     description:
       'This is the hard-coded description. This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
     instruction:
