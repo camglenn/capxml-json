@@ -69,9 +69,9 @@ const hardcodedAlert = {
     ],
     resource: [
         {   
-            resourceDesc: "Iowa DOT Emergency Contact Information", 
+            resourceDesc: "Iowa Disaster Resources", 
             mimeType: "text/html", 
-            uri: "https://iowadot.gov/mvd/emergency-contact-information",
+            uri: "https://homelandsecurity.iowa.gov/",
         },
         {   
             resourceDesc: "Iowa Snow Totals", 
@@ -185,24 +185,13 @@ app.get("/json-feed", async (req, res) => {
     console.error("❌ Redis fallback failed:", err.message);
   }
 
-  return res.status(503).json({ message: "No alerts available yet." });
-});
-
-app.get("/debug", async (req, res) => {
-  const redisAlert = await redis.get("lastValidAlert");
-  const redisTime = await redis.get("lastUpdated");
-
-  res.json({
-    inMemory: lastValidAlert ? "✅ Exists" : "❌ Missing",
-    redis: redisAlert ? "✅ Found" : "❌ Missing",
-    redisData: redisAlert
-      ? {
-          alerts: JSON.parse(redisAlert),
-          lastUpdated: redisTime,
-        }
-      : null,
+  // Final fallback: return hardcoded alert twice
+  return res.json({
+    lastUpdated: new Date().toISOString(),
+    alerts: [hardcodedAlert, hardcodedAlert],
   });
 });
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
