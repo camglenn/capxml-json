@@ -69,9 +69,9 @@ const hardcodedAlert = {
     ],
     resource: [
         {   
-            resourceDesc: "Iowa State Emergency Management Agency", 
+            resourceDesc: "Iowa DOT Emergency Contact Information", 
             mimeType: "text/html", 
-            uri: "https://ready.iowa.gov",
+            uri: "https://iowadot.gov/mvd/emergency-contact-information",
         },
         {   
             resourceDesc: "Iowa Snow Totals", 
