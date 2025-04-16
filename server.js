@@ -69,9 +69,9 @@ const hardcodedAlert = {
     ],
     resource: [
         {   
-            resourceDesc: "EAS Broadcast Content", 
-            mimeType: "image/png", 
-            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_qr_code.png",
+            resourceDesc: "Iowa State Emergency Management Agency", 
+            mimeType: "text/html", 
+            uri: "https://ready.iowa.gov",
         },
         {   
             resourceDesc: "Iowa Snow Totals", 
