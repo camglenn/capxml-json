@@ -48,9 +48,13 @@ const hardcodedAlert = {
     effective: "2025-04-08T16:40:46-04:00",
     expires: "2025-04-08T16:45:46-04:00",
     senderName: "120006,IPAWS-Test-COG,PMO Tester",
-    headline: "This is the hardcoded headline just for testing at will...",
-    description:
-      'This is the hard-coded description. This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
+    headline: "Winters Storm Warning in Effect For Westnern Iowa",
+    description: "A winter storm warning is in effect for western Iowa on Saturday and Sunday. The storm is expected to bring heavy snow, damaging winds, and below-freezing temperatures. Expect slick roads and possible whiteout conditions.",
+    
+    "Limit travel and time outdoors until the storm ends. Tree and power line damage is expected to cause power outages. Lakeshore and riverbank flooding is possible.",
+    
+    "The warning is in effect from 1 p.m. Saturday to 1 p.m. Central Standard Time on Sunday.",
+    
     instruction:
       "This is the hard-coded instruction. All residents within a 10-mile radius MUST EVACUATE IMMEDIATELY. Call 555-5556 to request transportation. Shelters are being established outside of the affected areas. Do not pick up children from schools in the affected areas. Schoolchildren will be transported to shelters and parents will be notified via media where to meet their children. Stay tuned for additional emergency information. This is a Simulation. This is Only a Test.",
     parameter: [
