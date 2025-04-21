@@ -69,9 +69,9 @@ const hardcodedAlert = {
     ],
     resource: [
         {   
-            resourceDesc: "EAS Broadcast Content", 
+            resourceDesc: "Iow Office of Emergency Management", 
             mimeType: "image/png", 
-            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_qr_code.png",
+            uri: "https://homelandsecurity.iowa.gov/",
         },
         {   
             resourceDesc: "Iowa Snow Totals", 
