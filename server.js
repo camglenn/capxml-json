@@ -69,7 +69,7 @@ const hardcodedAlert = {
     ],
     resource: [
         {   
-            resourceDesc: "Iow Office of Emergency Management", 
+            resourceDesc: "Iowa Office of Emergency Management", 
             mimeType: "image/png", 
             uri: "https://homelandsecurity.iowa.gov/",
         },
