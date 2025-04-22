@@ -6,7 +6,7 @@ const { Redis } = require("@upstash/redis");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/200044452246";
+const XML_FEED_URL = "https://tdl.apps.fema.gov/IPAWSOPEN_EAS_SERVICE/rest/eas/recent/2023-08-21T11:40:43Z";
 
 // Redis via Upstash
 const redis = new Redis({
