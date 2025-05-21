@@ -36,23 +36,23 @@ const hardcodedAlert = {
   info: {
     language: "en-US",
     category: "CBRNE",
-    event: "Evacuation Immediate",
+    event: "Child Abduction Emergency",
     responseType: "Evacuate",
     urgency: "Immediate",
     severity: "Severe",
     certainty: "Observed",
     eventCode: {
       valueName: "SAME",
-      value: "EVI",
+      value: "CAE",
     },
     effective: "2025-04-08T16:40:46-04:00",
     expires: "2025-04-08T16:45:46-04:00",
     senderName: "120006,IPAWS-Test-COG,PMO Tester",
-    headline: "This is the hardcoded headline just for testing at will...",
+    headline: "Amber Alert Issued for Abducted Children",
     description:
-      'This is the hard-coded description. This is a "Simulation" noon two - This is Only a Test. An Accident has occurred at the Plant causing the release of significant amounts of material.',
+      'Any County Sheriff\'s Department AMBER Alert: 6-year-old siblings Jane and John Doe were kidnapped in a stolen red older model Ford Explorer at 7:00 AM today on Any Road. Both siblings are [description]. Suspect is a [description]. If you see the vehicle, call authorities. DO NOT approach. Stay tuned to local media and the Any County Sheriff\'s Department social media pages for more information. This is a simulation. This is only a test.',
     instruction:
-      "This is the hard-coded instruction. All residents within a 10-mile radius MUST EVACUATE IMMEDIATELY. Call 555-5556 to request transportation. Shelters are being established outside of the affected areas. Do not pick up children from schools in the affected areas. Schoolchildren will be transported to shelters and parents will be notified via media where to meet their children. Stay tuned for additional emergency information. This is a Simulation. This is Only a Test.",
+      "If you see the suspect's vehicle, the suspect, or the victims, you're asked to call authorities immediately. DO NOT approach the suspect who is believed to be armed and dangerous. This is a simulation. This is only a test.",
     parameter: [
       { valueName: "EAS-ORG", value: "CIV" },
       { valueName: "timezone", value: "EST" },
@@ -69,9 +69,9 @@ const hardcodedAlert = {
     ],
     resource: [
         {   
-            resourceDesc: "Iowa Office of Emergency Management", 
-            mimeType: "image/png", 
-            uri: "https://homelandsecurity.iowa.gov/",
+            resourceDesc: "Amber Alert Simulation", 
+            mimeType: "audio/mpeg", 
+            uri: "https://e8484bfa-eb42-48d2-8683-1fcde18bf0dd.s3.us-east-1.amazonaws.com/cae_alert_audio_simulation.mp3",
         },
         {   
             resourceDesc: "Iowa Snow Totals", 
