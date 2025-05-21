@@ -121,6 +121,11 @@ async function fetchAndCacheXML() {
     // Reverse the order to newest-first
     alerts = alerts.reverse();
 
+    // Append instruction to description only for the first item from the feed
+    if (alerts[0]?.info?.description && alerts[0]?.info?.instruction) {
+    alerts[0].info.description += " " + alerts[0].info.instruction;
+}
+
     // Limit to 1 from feed + 1 hardcoded
     const selectedAlerts = [alerts[0], hardcodedAlert];
 
