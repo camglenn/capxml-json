@@ -79,9 +79,9 @@ const hardcodedAlert = {
             uri: "https://amberalert.ojp.gov/",
         },
         {   
-            resourceDesc: "Iowa Forecast Snowfall", 
-            mimeType: "image/png", 
-            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_forecast_snowfall.png",
+            resourceDesc: "Amber Alert Flyer", 
+            mimeType: "application/pdf", 
+            uri: "https://e8484bfa-eb42-48d2-8683-1fcde18bf0dd.s3.us-east-1.amazonaws.com/demo_amber_flyer_rev.pdf",
         },
       ],
     area: {
