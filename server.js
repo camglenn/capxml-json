@@ -74,9 +74,9 @@ const hardcodedAlert = {
             uri: "https://e8484bfa-eb42-48d2-8683-1fcde18bf0dd.s3.us-east-1.amazonaws.com/cae_alert_audio_simulation.mp3",
         },
         {   
-            resourceDesc: "Iowa Snow Totals", 
-            mimeType: "image/png", 
-            uri: "https://d2v2309fx2p6c5.cloudfront.net/iowa_snow_totals.png",
+            resourceDesc: "More Information about Amber Alerts",
+            mimeType: "text/css", 
+            uri: "https://amberalert.ojp.gov/",
         },
         {   
             resourceDesc: "Iowa Forecast Snowfall", 
